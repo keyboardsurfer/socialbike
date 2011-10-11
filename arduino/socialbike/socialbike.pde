@@ -59,20 +59,13 @@ void setup()
 
 void loop()
 {
-		byte err;
-		byte idle;
-		static byte count = 0;
 		byte message[3];
 
 		if (acc.isConnected()) {
-				int len = acc.read(message, sizeof(message), 1);
-				int i;
-				byte b;
-				uint16_t val;
-				int x, y;
-				char c0;
+				int length = acc.read(message, sizeof(message), 1);
+				byte shackleFeeler;
 
-				if (len > 0) {
+				if (length > 0) {
 						// assumes only one command per packet
 						if (message[0] == 0x2) {
 								if (message[1] == 0x10) {
@@ -82,21 +75,21 @@ void loop()
 						}
 
 						message[0] = 0x1;
-						b = digitalRead(SHACKLE_FEELER);
-						if (b == HIGH) {
+						shackleFeeler = digitalRead(SHACKLE_FEELER);
+						if (shackleFeeler == HIGH) {
 								Serial.print("\r\nMESSAGE SHACKLE_FEELER: HIGH");
-						} else if (b == LOW) {
+						} else if (shackleFeeler == LOW) {
 								Serial.print("\r\nMESSAGE SHACKLE_FEELER: LOW");
 						} else {
 								Serial.print("\r\nMESSAGE SHACKLE_FEELER: WTF");
 						}
 
-						if (b != feelerInput) {
+						if (shackleFeeler != feelerInput) {
 								Serial.print("\r\nMESSAGE SHACKLE_FEELER");
 								message[1] = 0;
-								message[2] = b ? 0 : 1;
+								message[2] = shackleFeeler ? 0 : 1;
 								acc.write(message, 3);
-								feelerInput = b;
+								feelerInput = shackleFeeler;
 						}
 				}
 		} else {
