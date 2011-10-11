@@ -34,7 +34,7 @@ void loop();
 void init_locker()
 {
 		keyLocker.attach(KEY_LOCKER);
-		keyLocker.write(90); 
+		keyLocker.write(90);
 }
 
 void init_shackle_feeler()
@@ -45,6 +45,7 @@ void init_shackle_feeler()
 }
 
 byte feelerInput;
+bool shackleCheck;
 
 void setup()
 {
@@ -74,7 +75,18 @@ void loop()
 								}
 						}
 
-						message[0] = 0x1;
+						if (message[0] == 0x3 && message[1] == 0x0) {
+								Serial.print("\r\nShackle toggle");
+								if (shackleCheck) {
+										shackleCheck = false;
+								} else {
+										shackleCheck = true;
+								}
+						}
+
+				}
+				if (shackleCheck) {
+
 						shackleFeeler = digitalRead(SHACKLE_FEELER);
 						if (shackleFeeler == HIGH) {
 								Serial.print("\r\nMESSAGE SHACKLE_FEELER: HIGH");
