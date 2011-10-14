@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ADKBikeActivity</string>
+	<string name="app_name">ADKBikeActivity</string>
+	<string name="lock">Lock</string>
+	<string name="unlock">Lock</string>
+	<string name="on">On</string>
+	<string name="off">Off</string>
+	<string name="toggleLogForInput">Toggle</string>
 </resources>
