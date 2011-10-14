@@ -21,9 +21,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.future.usb</groupId>
+            <groupId>com.android.future</groupId>
             <artifactId>usb</artifactId>
-            <version>1.0</version>
+            <version>10_r2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

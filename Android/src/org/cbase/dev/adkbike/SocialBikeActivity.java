@@ -3,13 +3,13 @@ package org.cbase.dev.adkbike;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import com.android.future.usb.UsbAccessory;
-import com.android.future.usb.UsbManager;
-
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+
+import com.android.future.usb.UsbAccessory;
+import com.android.future.usb.UsbManager;
 
 public class SocialBikeActivity extends Activity {
 

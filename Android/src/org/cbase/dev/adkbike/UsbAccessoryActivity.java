@@ -18,7 +18,7 @@ public class UsbAccessoryActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Intent intent = new Intent(this, ADKBikeActivity.class);
+    Intent intent = new Intent(this, SocialBikeActivity.class);
 
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                     | Intent.FLAG_ACTIVITY_CLEAR_TOP);
