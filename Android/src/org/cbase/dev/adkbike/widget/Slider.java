@@ -1,4 +1,7 @@
-package org.cbase.dev.adkbike;
+package org.cbase.dev.adkbike.widget;
+
+import org.cbase.dev.adkbike.R;
+import org.cbase.dev.adkbike.R.drawable;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -11,7 +14,7 @@ import android.view.View;
 
 public class Slider extends View {
 
-	interface SliderPositionListener {
+	public interface SliderPositionListener {
 		void onPositionChange(double value);
 	}
 

@@ -1,4 +1,4 @@
-package org.cbase.dev.adkbike;
+package org.cbase.dev.adkbike.widget;
 
 import android.graphics.drawable.Drawable;
 

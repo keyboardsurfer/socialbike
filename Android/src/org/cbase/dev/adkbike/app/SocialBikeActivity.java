@@ -1,9 +1,13 @@
-package org.cbase.dev.adkbike;
+package org.cbase.dev.adkbike.app;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import org.cbase.dev.adkbike.R;
+import org.cbase.dev.adkbike.R.id;
+import org.cbase.dev.adkbike.R.layout;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -13,11 +17,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 
 import com.android.future.usb.UsbAccessory;
 import com.android.future.usb.UsbManager;
 
-public class SocialBikeActivity extends Activity implements Runnable {
+public class SocialBikeActivity extends Activity implements Runnable,
+		OnClickListener {
 
 	private static final String TAG = SocialBikeActivity.class.getSimpleName();
 
@@ -33,18 +40,18 @@ public class SocialBikeActivity extends Activity implements Runnable {
 	FileOutputStream mOutputStream;
 
 	/**
-	 * The message that indicates that we're sending a key to the lock.
+	 * The command that indicates that we're sending a key to the lock.
 	 */
-	private static final int MESSAGE_KEY = 1;
+	public static final byte COMMAND_KEY = 1;
 	/**
-	 * The message that indicates that we want to change the status of the lock.
+	 * The command that indicates that we want to change the status of the lock.
 	 */
-	private static final int MESSAGE_LOCK = 2;
+	public static final byte COMMAND_LOCK = 2;
 	/**
-	 * The message that indicates that we want to change the lights attached to
+	 * The command that indicates that we want to change the lights attached to
 	 * the lock (if any)
 	 */
-	private static final int MESSAGE_LIGHT = 3;
+	public static final byte COMMAND_LIGHT = 3;
 
 	protected class KeyMessage {
 		private byte sw;
@@ -94,6 +101,7 @@ public class SocialBikeActivity extends Activity implements Runnable {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		findViewById(R.id.logoutput).setOnClickListener(this);
 	}
 
 	private void openAccessory(UsbAccessory accessory) {
@@ -106,14 +114,14 @@ public class SocialBikeActivity extends Activity implements Runnable {
 			Thread thread = new Thread(null, this, "SocialBike");
 			thread.start();
 			Log.d(TAG, "accessory opened");
-			// enableControls(true);
+			toggleControls(true);
 		} else {
 			Log.d(TAG, "accessory open fail");
 		}
 	}
 
 	private void closeAccessory() {
-		// enableControls(false);
+		toggleControls(false);
 
 		try {
 			if (mFileDescriptor != null) {
@@ -126,6 +134,17 @@ public class SocialBikeActivity extends Activity implements Runnable {
 		}
 	}
 
+	private void toggleControls(boolean enabled) {
+		findViewById(R.id.logoutput).setEnabled(enabled);
+		findViewById(R.id.lock_slider).setEnabled(enabled);
+	}
+
+	/**
+	 * Sends a command to the attached device.
+	 * @param command The command you want to send.
+	 * @param target 
+	 * @param value The value that should be sent.
+	 */
 	public void sendCommand(byte command, byte target, int value) {
 		byte[] buffer = new byte[3];
 		if (value > 255)
@@ -146,6 +165,18 @@ public class SocialBikeActivity extends Activity implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.logoutput:
+
+			break;
+
+		default:
+			break;
+		}
 	}
 
 }
