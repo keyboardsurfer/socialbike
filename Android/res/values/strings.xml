@@ -7,4 +7,5 @@
 	<string name="off">Off</string>
 	<string name="toggleLogForInput">Toggle</string>
     <string name="button_save">Speichern</string>
+    <string name="shackle_feeler">Fühler</string>
 </resources>

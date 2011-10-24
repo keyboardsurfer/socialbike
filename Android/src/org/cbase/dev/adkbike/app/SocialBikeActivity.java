@@ -53,6 +53,11 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	 */
 	public static final byte COMMAND_LIGHT = 3;
 
+	/**
+	 * Indicates that you want to talk to the shackle feeler.
+	 */
+	public static final byte COMMAND_SHACKLE_FEELER = 4;
+
 	protected class KeyMessage {
 		private byte sw;
 		private byte key;
@@ -141,9 +146,12 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
 	/**
 	 * Sends a command to the attached device.
-	 * @param command The command you want to send.
-	 * @param target 
-	 * @param value The value that should be sent.
+	 * 
+	 * @param command
+	 *            The command you want to send.
+	 * @param target
+	 * @param value
+	 *            The value that should be sent.
 	 */
 	public void sendCommand(byte command, byte target, int value) {
 		byte[] buffer = new byte[3];
