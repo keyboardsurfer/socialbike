@@ -10,6 +10,7 @@
 #define  SHACKLE_FEELER 41
 #define  SHACKLE_OUTPUT 43
 
+
 AndroidAccessory acc("SocialBike",
 				"SocialBike",
 				"SocialBike Lock",
@@ -26,14 +27,18 @@ AndroidAccessory acc("SocialBike",
 
  */
 Servo keyLocker;
-
+int keyLockerValue;
+int keyStepper = 1;
+int keyMaxValue = 100;
+int keyMinValue = 0;
 void setup();
 void loop();
 
 void init_locker()
 {
-		keyLocker.attach(KEY_LOCKER);
-		keyLocker.write(90);
+  keyLockerValue = keyMinValue;
+  keyLocker.attach(KEY_LOCKER);
+  keyLocker.write(keyLockerValue);
 }
 
 void init_shackle_feeler()
@@ -44,7 +49,7 @@ void init_shackle_feeler()
 }
 
 byte feelerInput;
-bool shackleCheck;
+bool shackleCheck = true;
 
 void setup()
 {
@@ -103,9 +108,20 @@ void loop()
 								feelerInput = shackleFeeler;
 						}
 				}
+                
+           
 		} else {
-				keyLocker.write(90);
+                  
 		}
+
+                  keyLocker.write(keyLockerValue);
+                  if (keyLockerValue == keyMaxValue){
+                  keyStepper = -1;
+                  }
+                  if (keyLockerValue == keyMinValue){
+                  keyStepper = 1;
+                  }
+                  keyLockerValue += keyStepper;
 
 		delay(10);
 }
