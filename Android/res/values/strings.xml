@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">SocialBike</string>
+	<string name="app_name">Social Bike Lock</string>
 	<string name="lock">Lock</string>
 	<string name="unlock">Unlock</string>
 	<string name="on">On</string>

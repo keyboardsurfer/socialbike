@@ -12,7 +12,7 @@
 
 
 AndroidAccessory acc("SocialBike",
-				"SocialBike",
+				"Social Bike Lock",
 				"SocialBike Lock",
 				"1.0",
 				"http://www.c-base.org",
