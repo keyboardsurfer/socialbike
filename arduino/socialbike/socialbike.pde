@@ -10,22 +10,21 @@
 #define  SHACKLE_FEELER 41
 #define  SHACKLE_OUTPUT 43
 
-/*
-   AndroidAccessory acc("SocialBike",
-   "SocialBike",
-   "SocialBike Lock",
-   "1.0",
-   "http://www.c-base.org",
-   "3245678878765432");
- */
-
-AndroidAccessory acc("Google, Inc.",
-				"DemoKit",
-				"DemoKit Arduino Board",
+AndroidAccessory acc("SocialBike",
+				"SocialBike",
+				"SocialBike Lock",
 				"1.0",
-				"http://www.android.com",
-				"0000000012345678");
+				"http://www.c-base.org",
+				"3245678878765432");
+/*
+   AndroidAccessory acc("Google, Inc.",
+   "DemoKit",
+   "DemoKit Arduino Board",
+   "1.0",
+   "http://www.android.com",
+   "0000000012345678");
 
+ */
 Servo keyLocker;
 
 void setup();
