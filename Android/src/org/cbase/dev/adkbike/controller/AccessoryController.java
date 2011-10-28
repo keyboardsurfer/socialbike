@@ -8,7 +8,7 @@ import android.view.View;
 public abstract class AccessoryController {
 
 	protected SocialBikeActivity mHostActivity;
-	
+
 	public AccessoryController(SocialBikeActivity activity) {
 		mHostActivity = activity;
 	}

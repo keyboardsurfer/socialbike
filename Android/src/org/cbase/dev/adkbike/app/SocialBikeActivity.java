@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.cbase.dev.adkbike.R;
-import org.cbase.dev.adkbike.R.id;
-import org.cbase.dev.adkbike.R.layout;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -44,19 +42,25 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	 */
 	public static final byte COMMAND_KEY = 1;
 	/**
-	 * The command that indicates that we want to change the status of the lock.
+	 * The command that indicates that we want to close the lock.
 	 */
 	public static final byte COMMAND_LOCK = 2;
 	/**
-	 * The command that indicates that we want to change the lights attached to
-	 * the lock (if any)
+	 * The command that indicates that we want to open the lock.
 	 */
-	public static final byte COMMAND_LIGHT = 3;
-
+	public static final byte COMMAND_UNLOCK = 3;
+	
 	/**
 	 * Indicates that you want to talk to the shackle feeler.
 	 */
 	public static final byte COMMAND_SHACKLE_FEELER = 4;
+
+	/**
+	 * The command that indicates that we want to change the lights attached to
+	 * the lock (if any)
+	 */
+	public static final byte COMMAND_LIGHT = 5;
+
 
 	protected class KeyMessage {
 		private byte sw;
