@@ -27,12 +27,18 @@ AndroidAccessory acc("SocialBike",
 
  */
 Servo keyLocker;
-int keyLockerValue;
-int keyStepper = 1;
-int keyMaxValue = 100;
-int keyMinValue = 0;
+int minLockServo = 0;
+int maxLockServo = 0;
+int minAnalogIn = 0;
+int maxAnalogIn = 0;
+
 void setup();
 void loop();
+void calibrateLock();
+
+//helper methods
+void writeIntToEEPROM(int value, int EEPROMaddress);
+int readIntFromEEPROM(int EEPROMaddress);
 
 void init_locker()
 {
@@ -51,11 +57,51 @@ void init_shackle_feeler()
 byte feelerInput;
 bool shackleCheck = true;
 
+
+void resetCalibration(){
+  EEPROM.write(1,0);
+  EEPROM.write(2,0);
+} 
+void calibrateLock()
+{
+  if (EEPROM.read(1) == 9 && EEPROM.read(2) == 9){
+    minLockServo = readIntFromEEPROM(3);
+    maxLockServo = readIntFromEEPROM(5);
+    minAnalogIn = readIntFromEEPROM(7);
+    maxAnalogIn = readIntFromEEPROM(9);
+    return;
+  }
+  keyLocker.write(minLockServo);
+  minAnalogIn = analogRead(sensorPin1);
+  maxAnalogIn = minAnalogIn;
+  int lastPotiChange = 0;
+  for(int i = minLockServo; i< 180; i++={
+    int potiRead = analogRead(sensorPin1)
+    if(potiRead < minAnalogIn){
+      minAnalogIn = potiRead;
+      lastPotiChange = i;
+    }
+    if(potiRead > maxAnalogIn){
+      maxAnalogIn = potiRead;
+      lastPotiChange = i;
+    }
+    if(lastPotiChange - i >= 5){
+      maxLockServo = i-10;
+      break;
+    } 
+  }
+  
+  writeIntToEEPROM(minLockServo, 3);
+  writeIntToEEPROM(maxLockServo, 5);
+  writeIntToEEPROM(minAnalogIn, 7);
+  writeIntToEEPROM(maxAnalogIn, 9);
+}
+
 void setup()
 {
 		Serial.begin(115200);
 		Serial.print("\r\nStart");
-
+                calibrateLock();
 		init_locker();
 		init_shackle_feeler();
 
@@ -125,3 +171,17 @@ void loop()
 
 		delay(10);
 }
+
+//helper stuff
+
+void writeIntToEEPROM(int value, int EEPROMaddress){
+  byte a1 = (value >> 8);
+  byte a2 = (value);
+  EEPROM.write(a1,EEPROMaddress);
+  EEPROM.write(a2,EEPROMaddress+1);
+}
+
+int readIntFromEEPROM(int EEPROMaddress){
+  return EEPROM.read(EEPROMaddress) << 8 | EEPROM.read(EEPROMaddress+1);
+}
+
