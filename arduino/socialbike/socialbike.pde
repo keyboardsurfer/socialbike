@@ -36,9 +36,9 @@ void loop();
 
 void init_locker()
 {
-  keyLockerValue = keyMinValue;
-  keyLocker.attach(KEY_LOCKER);
-  keyLocker.write(keyLockerValue);
+		keyLockerValue = keyMinValue;
+		keyLocker.attach(KEY_LOCKER);
+		keyLocker.write(keyLockerValue);
 }
 
 void init_shackle_feeler()
@@ -49,7 +49,7 @@ void init_shackle_feeler()
 }
 
 byte feelerInput;
-bool shackleCheck = true;
+bool shackleCheck = false;
 
 void setup()
 {
@@ -71,6 +71,10 @@ void loop()
 				byte shackleFeeler;
 
 				if (length > 0) {
+				Serial.print("\r\n Received stuff:");
+				Serial.print("\r\n message[0] is:" + message[0]);
+				Serial.print("\r\n message[1] is:" + message[1]);
+				Serial.print("\r\n message[2] is:" + message[2]);
 						// assumes only one command per packet
 						if (message[0] == 0x2) {
 								if (message[1] == 0x10) {
@@ -79,13 +83,20 @@ void loop()
 								}
 						}
 
-						if (message[0] == 0x3 && message[1] == 0x0) {
+						if (message[0] == 0x1 && message[1] == 0x0) {
 								Serial.print("\r\nShackle toggle");
 								if (shackleCheck) {
 										shackleCheck = false;
 								} else {
 										shackleCheck = true;
 								}
+						}
+
+						if (message[0] == 0x2 && message[1] == 0x0) {
+								keyLocker.write(keyMaxValue);
+						}
+						if (message[0] == 0x3 && message[1] == 0x0) {
+								keyLocker.write(keyMaxValue);
 						}
 
 				}
@@ -108,20 +119,21 @@ void loop()
 								feelerInput = shackleFeeler;
 						}
 				}
-                
-           
-		} else {
-                  
-		}
 
-                  keyLocker.write(keyLockerValue);
-                  if (keyLockerValue == keyMaxValue){
-                  keyStepper = -1;
-                  }
-                  if (keyLockerValue == keyMinValue){
-                  keyStepper = 1;
-                  }
-                  keyLockerValue += keyStepper;
+
+		} else {
+
+		}
+		/*
+		   keyLocker.write(keyLockerValue);
+		   if (keyLockerValue == keyMaxValue){
+		   keyStepper = -1;
+		   }
+		   if (keyLockerValue == keyMinValue){
+		   keyStepper = 1;
+		   }
+		   keyLockerValue += keyStepper;
+		 */
 
 		delay(10);
 }

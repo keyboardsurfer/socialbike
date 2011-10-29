@@ -1,7 +1,6 @@
 package org.cbase.dev.adkbike.widget;
 
 import org.cbase.dev.adkbike.R;
-import org.cbase.dev.adkbike.R.drawable;
 
 import android.content.Context;
 import android.content.res.Resources;
