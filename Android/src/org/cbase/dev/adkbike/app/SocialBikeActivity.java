@@ -12,11 +12,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 
 import com.android.future.usb.UsbAccessory;
 import com.android.future.usb.UsbManager;
@@ -31,6 +33,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	private UsbManager mUsbManager;
 	private PendingIntent mPermissionIntent;
 	private boolean mPermissionRequestPending;
+
+	private Button lockButton;
+	private boolean locked;
 
 	UsbAccessory mAccessory;
 	ParcelFileDescriptor mFileDescriptor;
@@ -49,7 +54,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	 * The command that indicates that we want to open the lock.
 	 */
 	public static final byte COMMAND_UNLOCK = 3;
-	
+
 	/**
 	 * Indicates that you want to talk to the shackle feeler.
 	 */
@@ -60,7 +65,6 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	 * the lock (if any)
 	 */
 	public static final byte COMMAND_LIGHT = 5;
-
 
 	protected class KeyMessage {
 		private byte sw;
@@ -109,8 +113,48 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mUsbManager = UsbManager.getInstance(this);
+		mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
+				ACTION_USB_PERMISSION), 0);
+		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+		registerReceiver(mUsbReceiver, filter);
+
+		if (getLastNonConfigurationInstance() != null) {
+			mAccessory = (UsbAccessory) getLastNonConfigurationInstance();
+			openAccessory(mAccessory);
+		}
 		setContentView(R.layout.main);
-		findViewById(R.id.logoutput).setOnClickListener(this);
+		lockButton = (Button) findViewById(R.id.toggleLock);
+		lockButton.setOnClickListener(this);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+
+//		Intent intent = getIntent();
+		if (mInputStream != null && mOutputStream != null) {
+			return;
+		}
+
+		UsbAccessory[] accessories = mUsbManager.getAccessoryList();
+		UsbAccessory accessory = (accessories == null ? null : accessories[0]);
+		if (accessory != null) {
+			if (mUsbManager.hasPermission(accessory)) {
+				openAccessory(accessory);
+			} else {
+				synchronized (mUsbReceiver) {
+					if (!mPermissionRequestPending) {
+						mUsbManager.requestPermission(accessory,
+								mPermissionIntent);
+						mPermissionRequestPending = true;
+					}
+				}
+			}
+		} else {
+			Log.d(TAG, "mAccessory is null");
+		}
 	}
 
 	private void openAccessory(UsbAccessory accessory) {
@@ -144,8 +188,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	}
 
 	private void toggleControls(boolean enabled) {
-		findViewById(R.id.logoutput).setEnabled(enabled);
-		findViewById(R.id.lock_slider).setEnabled(enabled);
+		findViewById(R.id.toggleLock).setEnabled(enabled);
 	}
 
 	/**
@@ -165,9 +208,12 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		buffer[0] = command;
 		buffer[1] = target;
 		buffer[2] = (byte) value;
+		Log.d(TAG, "stream is: " + mOutputStream.toString());
+		Log.d(TAG, "buffer[1] is:" + buffer[1]);
 		if (mOutputStream != null && buffer[1] != -1) {
 			try {
 				mOutputStream.write(buffer);
+				Log.i(TAG, "Wrote to adk");
 			} catch (IOException e) {
 				Log.e(TAG, "write failed", e);
 			}
@@ -182,8 +228,15 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		case R.id.logoutput:
-
+		case R.id.toggleLock:
+			if (locked) {
+				sendCommand(COMMAND_UNLOCK, (byte) 2, 1);
+				lockButton.setText(R.string.lock);
+			} else {
+				sendCommand(COMMAND_LOCK, (byte) 3, 1);
+				lockButton.setText(R.string.unlock);
+			}
+			locked = !locked;
 			break;
 
 		default:

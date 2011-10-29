@@ -1,5 +1,6 @@
 package org.cbase.dev.adkbike.app;
 
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -15,7 +16,7 @@ public class UsbAccessoryActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		Log.i(TAG, "onCreate");
 		Intent intent = new Intent(this, SocialBikeActivity.class);
 
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK

@@ -3,6 +3,7 @@ package org.cbase.dev.adkbike.widget;
 import android.content.Context;
 import android.util.AttributeSet;
 
+
 public class VerticalSlider extends Slider {
 	public VerticalSlider(Context context) {
 		super(context);
