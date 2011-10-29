@@ -16,13 +16,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-
 
 public class SocialBikeActivity extends Activity implements Runnable,
 		OnClickListener {
@@ -35,8 +36,10 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	private PendingIntent mPermissionIntent;
 	private boolean mPermissionRequestPending;
 
-	private Button lockButton;
+	private Button lockButton, pollShackle;
 	private boolean locked;
+
+	private String key;
 
 	UsbAccessory mAccessory;
 	ParcelFileDescriptor mFileDescriptor;
@@ -128,13 +131,20 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		setContentView(R.layout.main);
 		lockButton = (Button) findViewById(R.id.toggleLock);
 		lockButton.setOnClickListener(this);
+		pollShackle = (Button) findViewById(R.id.pollShackle);
+		pollShackle.setOnClickListener(this);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
-//		Intent intent = getIntent();
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String prefKey = getString(R.string.preference_key);
+		key = prefs.getString(prefKey, "");
+
+		// Intent intent = getIntent();
 		if (mInputStream != null && mOutputStream != null) {
 			return;
 		}
@@ -154,6 +164,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 				}
 			}
 		} else {
+			toggleControls(false);
 			Log.d(TAG, "mAccessory is null");
 		}
 	}
@@ -189,7 +200,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	}
 
 	private void toggleControls(boolean enabled) {
-		findViewById(R.id.toggleLock).setEnabled(enabled);
+		lockButton.setEnabled(enabled);
+		pollShackle.setEnabled(enabled);
 	}
 
 	/**
@@ -241,7 +253,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
 			}
 			locked = !locked;
 			break;
-
+		case R.id.pollShackle:
+			sendCommand(COMMAND_SHACKLE_FEELER, (byte) COMMAND_SHACKLE_FEELER, 1);
+			break;
 		default:
 			break;
 		}
