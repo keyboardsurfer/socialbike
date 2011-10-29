@@ -210,7 +210,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		buffer[1] = target;
 		buffer[2] = (byte) value;
 		Log.d(TAG, "stream is: " + mOutputStream.toString());
+		Log.d(TAG, "buffer[0] is:" + buffer[0]);
 		Log.d(TAG, "buffer[1] is:" + buffer[1]);
+		Log.d(TAG, "buffer[2] is:" + buffer[2]);
 		if (mOutputStream != null && buffer[1] != -1) {
 			try {
 				mOutputStream.write(buffer);
@@ -231,10 +233,10 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		switch (v.getId()) {
 		case R.id.toggleLock:
 			if (locked) {
-				sendCommand(COMMAND_UNLOCK, (byte) 2, 1);
+				sendCommand(COMMAND_UNLOCK, (byte) COMMAND_UNLOCK, 1);
 				lockButton.setText(R.string.lock);
 			} else {
-				sendCommand(COMMAND_LOCK, (byte) 3, 1);
+				sendCommand(COMMAND_LOCK, (byte) COMMAND_LOCK, 1);
 				lockButton.setText(R.string.unlock);
 			}
 			locked = !locked;

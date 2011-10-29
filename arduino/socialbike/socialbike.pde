@@ -28,14 +28,17 @@ AndroidAccessory acc("SocialBike",
  */
 Servo keyLocker;
 int keyLockerValue;
-int keyStepper = 1;
-int keyMaxValue = 100;
-int keyMinValue = 0;
+int keyStepper;
+int keyMaxValue;
+int keyMinValue;
 void setup();
 void loop();
 
 void init_locker()
 {
+		keyStepper = 1;
+		keyMaxValue = 100;
+		keyMinValue = 0;
 		keyLockerValue = keyMinValue;
 		keyLocker.attach(KEY_LOCKER);
 		keyLocker.write(keyLockerValue);
@@ -71,10 +74,15 @@ void loop()
 				byte shackleFeeler;
 
 				if (length > 0) {
-				Serial.print("\r\n Received stuff:");
-				Serial.print("\r\n message[0] is:" + message[0]);
-				Serial.print("\r\n message[1] is:" + message[1]);
-				Serial.print("\r\n message[2] is:" + message[2]);
+						Serial.print("\r\n Received stuff:");
+						Serial.print("\r\n message size is:" + sizeof(message));
+						Serial.print(sizeof(message));
+						Serial.print("\r\n message[0] is:");
+						Serial.print(message[0]);
+						Serial.print("\r\n message[1] is:");
+						Serial.print(message[1]);
+						Serial.print("\r\n message[2] is:");
+						Serial.print(message[2]);
 						// assumes only one command per packet
 						if (message[0] == 0x2) {
 								if (message[1] == 0x10) {
@@ -92,11 +100,13 @@ void loop()
 								}
 						}
 
-						if (message[0] == 0x2 && message[1] == 0x0) {
-								keyLocker.write(keyMaxValue);
+						if (message[0] == 0x2 && message[1] == 0x2) {
+								Serial.print("\r\nShackle lock");
+								keyLocker.write(0);
 						}
-						if (message[0] == 0x3 && message[1] == 0x0) {
-								keyLocker.write(keyMaxValue);
+						if (message[0] == 0x3 && message[1] == 0x3) {
+								Serial.print("\r\nShackle unlock");
+								keyLocker.write(100);
 						}
 
 				}
