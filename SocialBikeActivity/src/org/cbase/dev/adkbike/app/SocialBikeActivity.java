@@ -7,6 +7,9 @@ import java.io.IOException;
 
 import org.cbase.dev.adkbike.R;
 
+import com.android.future.usb.UsbAccessory;
+import com.android.future.usb.UsbManager;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -20,8 +23,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.android.future.usb.UsbAccessory;
-import com.android.future.usb.UsbManager;
 
 public class SocialBikeActivity extends Activity implements Runnable,
 		OnClickListener {
