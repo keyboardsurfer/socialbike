@@ -147,11 +147,11 @@ void loop()
 
 						if (message[0] == 0x2 && message[1] == 0x2) {
 								Serial.print("\r\nShackle lock");
-								keyLocker.write(0);
+								closeLock();
 						}
 						if (message[0] == 0x3 && message[1] == 0x3) {
 								Serial.print("\r\nShackle unlock");
-								keyLocker.write(100);
+								openLock();
 						}
 
 				}
