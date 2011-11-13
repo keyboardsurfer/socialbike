@@ -36,7 +36,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	private PendingIntent mPermissionIntent;
 	private boolean mPermissionRequestPending;
 
-	private Button lockButton, pollShackle;
+	private Button lockButton;
+//	private Button pollShackle;
 	private boolean locked;
 
 	private String key;
@@ -131,8 +132,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		setContentView(R.layout.main);
 		lockButton = (Button) findViewById(R.id.toggleLock);
 		lockButton.setOnClickListener(this);
-		pollShackle = (Button) findViewById(R.id.pollShackle);
-		pollShackle.setOnClickListener(this);
+//		pollShackle = (Button) findViewById(R.id.pollShackle);
+//		pollShackle.setOnClickListener(this);
 	}
 
 	@Override
@@ -201,7 +202,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
 	private void toggleControls(boolean enabled) {
 		lockButton.setEnabled(enabled);
-		pollShackle.setEnabled(enabled);
+//		pollShackle.setEnabled(enabled);
 	}
 
 	/**
@@ -253,9 +254,10 @@ public class SocialBikeActivity extends Activity implements Runnable,
 			}
 			locked = !locked;
 			break;
-		case R.id.pollShackle:
-			sendCommand(COMMAND_SHACKLE_FEELER, (byte) COMMAND_SHACKLE_FEELER, 1);
-			break;
+//		case R.id.pollShackle:
+//			sendCommand(COMMAND_SHACKLE_FEELER, (byte) COMMAND_SHACKLE_FEELER,
+//					1);
+//			break;
 		default:
 			break;
 		}
