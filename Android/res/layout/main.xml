@@ -7,16 +7,18 @@
     <Button
         android:id="@+id/toggleLock"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/lock" />
-    
-        <Button
+        android:layout_height="fill_parent"
+        android:text="@string/lock"
+        android:textSize="30dp"
+        android:textStyle="bold" />
+
+    <!--
+    <Button
         android:id="@+id/pollShackle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/pollShackleStatus" />
-    
-    <!--
+
 	<include android:id="@+id/lock_slider" layout="@layout/servo" android:padding="50dp" />
 	<include android:id="@+id/logoutput" layout="@layout/relaybutton" android:padding="50dp" />
     -->
