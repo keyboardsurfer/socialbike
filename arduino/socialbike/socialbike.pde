@@ -84,7 +84,7 @@ void setup()
 		init_locker();
 		init_shackle_feeler();
 
-                calibrateLock();
+    calibrateLock();
 
 		acc.powerOn();
 }
@@ -119,25 +119,25 @@ void loop()
 				byte shackleFeeler;
 
 				if (length > 0) {
-						Serial.print("\r\n Received stuff:");
-						Serial.print("\r\n message size is:" + sizeof(message));
-						Serial.print(sizeof(message));
-						Serial.print("\r\n message[0] is:");
-						Serial.print(message[0]);
-						Serial.print("\r\n message[1] is:");
-						Serial.print(message[1]);
-						Serial.print("\r\n message[2] is:");
-						Serial.print(message[2]);
+						Serial.print("\r\n Received stuff: ");
+						Serial.print("\r\n message size is: ");
+						Serial.print(sizeof(message), DEC);
+						Serial.print("\r\n message[0] is: ");
+						Serial.print(message[0],DEC);
+						Serial.print("\r\n message[1] is: ");
+						Serial.print(message[1],DEC);
+						Serial.print("\r\n message[2] is: ");
+						Serial.print(message[2],DEC);
 						// assumes only one command per packet
 						if (message[0] == 0x2) {
 								if (message[1] == 0x10) {
 										keyLocker.write(map(message[2], 0, 255, 0, 180));
-										Serial.print("\r\nMESSAGE wrote to keyLocker");
+										Serial.print("\r\nMESSAGE wrote to keyLocker\n");
 								}
 						}
 
 						if (message[0] == 0x1 && message[1] == 0x0) {
-								Serial.print("\r\nShackle toggle");
+								Serial.print("\r\nShackle toggle\n");
 								if (shackleCheck) {
 										shackleCheck = false;
 								} else {
@@ -146,11 +146,11 @@ void loop()
 						}
 
 						if (message[0] == 0x2 && message[1] == 0x2) {
-								Serial.print("\r\nShackle lock");
+								Serial.print("\r\nShackle lock\n");
 								closeLock();
 						}
 						if (message[0] == 0x3 && message[1] == 0x3) {
-								Serial.print("\r\nShackle unlock");
+								Serial.print("\r\nShackle unlock\n");
 								openLock();
 						}
 
@@ -159,15 +159,15 @@ void loop()
 
 						shackleFeeler = digitalRead(SHACKLE_FEELER);
 						if (shackleFeeler == HIGH) {
-								Serial.print("\r\nMESSAGE SHACKLE_FEELER: HIGH");
+								Serial.print("\r\nMESSAGE SHACKLE_FEELER: HIGH\n");
 						} else if (shackleFeeler == LOW) {
-								Serial.print("\r\nMESSAGE SHACKLE_FEELER: LOW");
+								Serial.print("\r\nMESSAGE SHACKLE_FEELER: LOW\n");
 						} else {
-								Serial.print("\r\nMESSAGE SHACKLE_FEELER: WTF");
+								Serial.print("\r\nMESSAGE SHACKLE_FEELER: WTF\n");
 						}
 
 						if (shackleFeeler != feelerInput) {
-								Serial.print("\r\nMESSAGE SHACKLE_FEELER");
+								Serial.print("\r\nMESSAGE SHACKLE_FEELER\n");
 								message[1] = 0;
 								message[2] = shackleFeeler ? 0 : 1;
 								acc.write(message, 3);
@@ -231,10 +231,15 @@ void calibrateLock()
     writeIntToEEPROM(1, 9);
     writeIntToEEPROM(2, 9);
     
-    Serial.print(" min:");
+    Serial.print("\n minAnalogIn:");
     Serial.print(minAnalogIn,DEC);
-    Serial.print(" max:");
+    Serial.print("\n maxAnalogIn:");
     Serial.print(maxAnalogIn,DEC);
+    Serial.print("\n minLockServo:");
+    Serial.print(minLockServo,DEC);
+    Serial.print("\n maxLockServo:");
+    Serial.print(maxLockServo,DEC);
+    Serial.print("\n");
 
     Serial.println("calibration done");
     return;
