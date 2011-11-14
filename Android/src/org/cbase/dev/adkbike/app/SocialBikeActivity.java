@@ -18,12 +18,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class SocialBikeActivity extends Activity implements Runnable,
 		OnClickListener {
@@ -37,15 +39,16 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	private boolean mPermissionRequestPending;
 
 	private Button lockButton;
-//	private Button pollShackle;
 	private boolean locked;
+	private boolean controlsEnabled = true;
 
 	private String key;
 
-	UsbAccessory mAccessory;
-	ParcelFileDescriptor mFileDescriptor;
-	FileInputStream mInputStream;
-	FileOutputStream mOutputStream;
+	private UsbAccessory mAccessory;
+	private ParcelFileDescriptor mFileDescriptor;
+	private FileInputStream mInputStream;
+	private FileOutputStream mOutputStream;
+	private Thread thread = new Thread(this, "LockThreadMartin");
 
 	/**
 	 * The command that indicates that we're sending a key to the lock.
@@ -59,17 +62,19 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	 * The command that indicates that we want to open the lock.
 	 */
 	public static final byte COMMAND_UNLOCK = 3;
-
 	/**
-	 * Indicates that you want to talk to the shackle feeler.
+	 * Indicates that you want to know whether the lock is open or closed.
 	 */
-	public static final byte COMMAND_SHACKLE_FEELER = 4;
-
+	public static final byte COMMAND_LOCK_STATUS = 4;
+	/**
+	 * Tells you the status of the shackle, ie. if it's plugged or unplugged.
+	 */
+	public static final byte COMMAND_SHACKLE_FEELER = 5;
 	/**
 	 * The command that indicates that we want to change the lights attached to
-	 * the lock (if any)
+	 * the lock (if any exist)
 	 */
-	public static final byte COMMAND_LIGHT = 5;
+	public static final byte COMMAND_LIGHT = 6;
 
 	protected class KeyMessage {
 		private byte sw;
@@ -132,8 +137,6 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		setContentView(R.layout.main);
 		lockButton = (Button) findViewById(R.id.toggleLock);
 		lockButton.setOnClickListener(this);
-//		pollShackle = (Button) findViewById(R.id.pollShackle);
-//		pollShackle.setOnClickListener(this);
 	}
 
 	@Override
@@ -145,7 +148,6 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		String prefKey = getString(R.string.preference_key);
 		key = prefs.getString(prefKey, "");
 
-		// Intent intent = getIntent();
 		if (mInputStream != null && mOutputStream != null) {
 			return;
 		}
@@ -185,18 +187,19 @@ public class SocialBikeActivity extends Activity implements Runnable,
 			FileDescriptor fd = mFileDescriptor.getFileDescriptor();
 			mInputStream = new FileInputStream(fd);
 			mOutputStream = new FileOutputStream(fd);
-			Thread thread = new Thread(null, this, "SocialBike");
 			thread.start();
 			Log.d(TAG, "accessory opened");
 			toggleControls(true);
+			sendCommand(COMMAND_LOCK_STATUS, (byte) COMMAND_LOCK_STATUS, 1);
 		} else {
 			Log.d(TAG, "accessory open fail");
 		}
+
 	}
 
 	private void closeAccessory() {
 		toggleControls(false);
-
+		thread.stop();
 		try {
 			if (mFileDescriptor != null) {
 				mFileDescriptor.close();
@@ -209,8 +212,22 @@ public class SocialBikeActivity extends Activity implements Runnable,
 	}
 
 	private void toggleControls(boolean enabled) {
-		lockButton.setEnabled(enabled);
-//		pollShackle.setEnabled(enabled);
+		if (controlsEnabled != enabled) {
+			lockButton.setEnabled(enabled);
+			controlsEnabled = enabled;
+		}
+		Toast.makeText(this, "Controls enabled: " + enabled, Toast.LENGTH_LONG)
+				.show();
+	}
+
+	private void setLocked(boolean locked) {
+		this.locked = locked;
+		if (locked) {
+			lockButton.setText(R.string.unlock);
+		} else {
+			lockButton.setText(R.string.lock);
+		}
+		Toast.makeText(this, "Locked is: " + locked, Toast.LENGTH_LONG).show();
 	}
 
 	/**
@@ -239,14 +256,45 @@ public class SocialBikeActivity extends Activity implements Runnable,
 				mOutputStream.write(buffer);
 				Log.i(TAG, "Wrote to adk");
 			} catch (IOException e) {
+				Toast.makeText(SocialBikeActivity.this,
+						"Write failed, please retry", Toast.LENGTH_LONG).show();
+				if (command == COMMAND_LOCK) {
+					setLocked(!locked);
+				}
 				Log.e(TAG, "write failed", e);
 			}
 		}
 	}
 
+	/* Receive data from the lock */
+
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
+		Looper.prepare();
+		int ret = 0;
+		byte[] buffer = new byte[3];
+
+		while (ret >= 0) {
+			try {
+				ret = mInputStream.read(buffer);
+			} catch (IOException e) {
+				break;
+			}
+			switch (buffer[0]) {
+			case COMMAND_LOCK_STATUS:
+				// 0 is locked, else is open
+				setLocked(buffer[1] == 0 ? true : false);
+				break;
+			case COMMAND_SHACKLE_FEELER:
+				// 0 is not plugged in, else is plugged in
+				toggleControls(buffer[1] == 0 ? false : true);
+				break;
+			default:
+				Log.d(TAG, "unknown msg: " + buffer[0]);
+				break;
+			}
+		}
+		Looper.loop();
 	}
 
 	@Override
@@ -255,17 +303,11 @@ public class SocialBikeActivity extends Activity implements Runnable,
 		case R.id.toggleLock:
 			if (locked) {
 				sendCommand(COMMAND_UNLOCK, (byte) COMMAND_UNLOCK, 1);
-				lockButton.setText(R.string.lock);
 			} else {
 				sendCommand(COMMAND_LOCK, (byte) COMMAND_LOCK, 1);
-				lockButton.setText(R.string.unlock);
 			}
-			locked = !locked;
+			setLocked(!locked);
 			break;
-//		case R.id.pollShackle:
-//			sendCommand(COMMAND_SHACKLE_FEELER, (byte) COMMAND_SHACKLE_FEELER,
-//					1);
-//			break;
 		default:
 			break;
 		}

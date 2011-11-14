@@ -48,7 +48,7 @@ public class ShackleFeelerController implements OnCheckedChangeListener {
 			mButton.setBackgroundDrawable(mOffBackground);
 		}
 		if (mActivity != null) {
-			mActivity.sendCommand(SocialBikeActivity.COMMAND_SHACKLE_FEELER,
+			mActivity.sendCommand(SocialBikeActivity.COMMAND_LOCK_STATUS,
 					mCommandTarget, isChecked ? 1 : 0);
 		}
 	}
