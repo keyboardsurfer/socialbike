@@ -5,12 +5,11 @@
 #include <Usb.h>
 #include <AndroidAccessory.h>
 
-#define  KEY_LOCKER     11
+#define  KEY_LOCKER     13
 
 #define  SHACKLE_FEELER 41
 #define  SHACKLE_OUTPUT 43
 #define  sensorPin1     1
-
 
 AndroidAccessory acc("SocialBike",
 				"Social Bike Lock",
