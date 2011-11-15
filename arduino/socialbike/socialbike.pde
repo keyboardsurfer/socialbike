@@ -7,8 +7,8 @@
 
 #define  KEY_LOCKER     13
 
-#define  SHACKLE_FEELER 41
-#define  SHACKLE_OUTPUT 43
+#define  SHACKLE_FEELER 23
+#define  SHACKLE_OUTPUT 42
 #define  sensorPin1     1
 
 AndroidAccessory acc("SocialBike",
@@ -76,7 +76,7 @@ bool shackleCheck = false;
 void setup()
 {
 		Serial.begin(115200);
-		Serial.print("\r\nStart");
+		Serial.print("\r\nStart\n");
 
                 
 
@@ -94,10 +94,10 @@ void loop()
     byte inChar = Serial.read();
       if (inChar == 'd') {
         if (lockIsOpen()){
-          Serial.println("the lock is open");
+          Serial.println("\nthe lock is open\n");
         }
         else{
-          Serial.println("the lock is closed");
+          Serial.println("\nthe lock is closed\n");
         }
       }
       else if (inChar == 'o') {
@@ -151,6 +151,14 @@ void loop()
 						if (message[0] == 0x3 && message[1] == 0x3) {
 								Serial.print("\r\nShackle unlock\n");
 								openLock();
+						}
+						if (message[0] == 0x4) {
+								Serial.print("\r\nCheck lock state\n");
+								sendLockState(acc);
+						}
+						if (message[0] == 0x5) {
+								Serial.print("\r\nCheck shackle state\n");
+								sendShackleState(acc);
 						}
 
 				}
@@ -207,7 +215,7 @@ void calibrateLock()
     return;
   }
   else{
-    Serial.println("calibrating");
+    Serial.println("\ncalibrating");
     minLockServo = 0;
     maxLockServo = 100;
     keyLocker.write(minLockServo);
@@ -334,10 +342,25 @@ void closeLock(){
 }
 
 boolean lockIsOpen(){
+  Serial.print("lockIsOpen");
+  //int potiValue = potiRead(sensorPin1); //???
   int potiValue = potiRead(20);
   if (abs(potiValue - minLockServo) < abs(potiValue - maxLockServo)){
+    Serial.print("\nlockIsOpen: true");
     return true;
   }
+    Serial.print("\nlockIsOpen: false");
+  return false;
+}
+boolean shackleIsOpen(){
+  Serial.print("\nshackleIsOpen\n");
+  //int potiValue = potiRead(sensorPin1); //???
+  int potiValue = potiRead(20);
+  if (abs(potiValue - minLockServo) < abs(potiValue - maxLockServo)){
+    Serial.print("\nshackleIsOpen: true");
+    return true;
+  }
+    Serial.print("\nshackleIsOpen: false");
   return false;
 }
 
@@ -361,4 +384,28 @@ int potiRead(int iterations){
 
 int readIntFromEEPROM(int EEPROMaddress){
   return EEPROM.read(EEPROMaddress) << 8 | EEPROM.read(EEPROMaddress+1);
+}
+
+void sendLockState(AndroidAccessory acc) {
+
+    Serial.print("\n\n sendLockState ");
+
+    byte message[3];
+    message[0]=4;
+//    message[1]=lockIsOpen() ? 1 : 0;
+    message[1]=lockIsOpen() ? 0 : 1;
+    message[2]=0;
+    acc.write(message, 3);
+
+}
+void sendShackleState(AndroidAccessory acc) {
+
+    Serial.print("\n\n sendShackleState \n");
+
+    byte message[3];
+    message[0]=4;
+    message[1]=shackleIsOpen();
+    message[2]=0;
+    acc.write(message, 3);
+
 }

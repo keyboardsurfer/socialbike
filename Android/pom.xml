@@ -151,8 +151,8 @@
 										<includes>
 												<include>${project.build.directory}/${project.artifactId}.apk</include>
 										</includes>
-										<keystore>${env.KEY_STORE_SOCIALBIKE}</keystore>
-										<storepass>${env.STORE_PASS_SOCIALBIKE}</storepass>
+										<keystore>test-key.keystore</keystore>
+										<storepass>socbike</storepass>
 										<alias>socialbike</alias>
 										<verbose>false</verbose>
 								</configuration>
