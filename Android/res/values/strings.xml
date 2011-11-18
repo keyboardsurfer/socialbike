@@ -10,6 +10,7 @@
     <string name="shackle_feeler">Fühler</string>
     <string name="register_key">Register a key</string>
     <string name="enter_your_key">Enter your key</string>
+    <string name="enter_your_master_key">Enter your master key</string>
     <string name="preferences">Preferences</string>
     <string name="received_key_x">Received key %1$s</string>
     <string name="could_not_retrieve_key">Could not retrieve key</string>

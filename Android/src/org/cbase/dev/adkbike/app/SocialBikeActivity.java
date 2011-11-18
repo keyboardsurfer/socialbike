@@ -341,7 +341,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
     switch (item.getItemId()) {
 
       case R.id.preferences:
-        startActivity(new Intent(this, EditTextPreference.class));
+        startActivity(new Intent(this, Preferences.class));
 
         return true;
 

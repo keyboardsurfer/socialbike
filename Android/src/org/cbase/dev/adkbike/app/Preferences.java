@@ -21,7 +21,7 @@ public class Preferences extends PreferenceActivity {
 
 		Intent intent = getIntent();
 		final String scheme = intent.getScheme();
-		if (scheme.equals("http") || scheme.equals("bikekey")) {
+		if (scheme != null && (scheme.equals("http") || scheme.equals("bikekey"))) {
 			Uri data = intent.getData();
 			if (data != null) {
 				String segment = data.getLastPathSegment();

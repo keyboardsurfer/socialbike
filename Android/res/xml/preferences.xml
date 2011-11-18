@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
-        android:key="@string/preference_key"
-        android:title="@string/enter_your_key" />
+            android:key="@string/preference_key"
+            android:title="@string/enter_your_key"
+            android:inputType="number"
+            android:password="true"
+            />
 
+    <!--<EditTextPreference-->
+             <!--android:key="@string/preference_master_key"-->
+             <!--android:title="@string/enter_your_master_key"-->
+             <!--android:inputType="number"-->
+             <!--android:password="true"-->
+             <!--/>-->
 </PreferenceScreen>
