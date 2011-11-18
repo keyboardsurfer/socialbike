@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
@@ -51,6 +52,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
   private FileInputStream      mInputStream;
   private FileOutputStream     mOutputStream;
   private Thread thread = new Thread(this, "LockThreadMartin");
+
+  Handler handler = new Handler();
 
   /**
    * The command that indicates that we're sending a key to the lock.
@@ -192,6 +195,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
       toggleControls(false);
       Log.d(TAG, "mAccessory is null");
     }
+
   }
 
   @Override
@@ -213,6 +217,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
       Log.d(TAG, "accessory opened");
       toggleControls(true);
       sendCommand(COMMAND_LOCK_STATUS, 1);
+
 //      sendCommand(COMMAND_LOCK_STATUS, 1, "1234");
 
     } else {
@@ -233,6 +238,21 @@ public class SocialBikeActivity extends Activity implements Runnable,
       mFileDescriptor = null;
       mAccessory = null;
     }
+    if (mOutputStream != null) {
+      try {
+        mOutputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      }
+    }
+    if (mInputStream != null) {
+      try {
+        mInputStream.close();
+      } catch (IOException e) {
+        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      }
+    }
+    finish();
   }
 
   private void toggleControls(boolean enabled) {
@@ -240,35 +260,62 @@ public class SocialBikeActivity extends Activity implements Runnable,
       lockButton.setEnabled(enabled);
       controlsEnabled = enabled;
     }
-    Toast.makeText(this, "Controls enabled: " + enabled, Toast.LENGTH_LONG)
-         .show();
+//    myToast("Controls enabled: " + enabled);
   }
 
   private void setKeyStatusReport(boolean b) {
     if (b) {
-      Toast.makeText(this, "Wrong Master Key", Toast.LENGTH_LONG).show();
+      myToast("Wrong Master Key");
     } else {
-      Toast.makeText(this, "Right Master Key", Toast.LENGTH_SHORT).show();
+      myToast("Right Master Key");
     }
   }
 
   private void unlockStatusReport(boolean answer) {
     if (answer) {
-      Toast.makeText(this, "Wrong Key", Toast.LENGTH_LONG).show();
+      myToast("Wrong Key");
+      setLocked(true);
     } else {
-      Toast.makeText(this, "Right Key", Toast.LENGTH_SHORT).show();
+      setLocked(false);
+      myToast("Right Key");
+    }
+
+  }
+
+  private void lockStatusReport(boolean answer) {
+    if (answer) {
+      myToast("Not Locked");
+    } else {
+      setLocked(true);
+      myToast("Locked");
     }
 
   }
 
   private void setLocked(boolean locked) {
+
     this.locked = locked;
     if (locked) {
-      lockButton.setText(R.string.unlock);
+      handler.post(new Runnable() {
+
+        @Override
+        public void run() {
+          lockButton.setText(R.string.unlock);
+        }
+      });
+
     } else {
-      lockButton.setText(R.string.lock);
+
+      handler.post(new Runnable() {
+
+        @Override
+        public void run() {
+          lockButton.setText(R.string.lock);
+        }
+      });
+
     }
-    Toast.makeText(this, "Locked is: " + locked, Toast.LENGTH_LONG).show();
+//    myToast("Locked is: " + locked);
   }
 
   /**
@@ -372,19 +419,27 @@ public class SocialBikeActivity extends Activity implements Runnable,
         Log.i(TAG, "Wrote to adk");
 
       } catch (IOException e) {
-        Toast.makeText(SocialBikeActivity.this,
-                       "Write failed, please retry", Toast.LENGTH_LONG).show();
-        if (command == COMMAND_LOCK) {
-          setLocked(!locked);
-        }
+//        myToast("Write failed, please retry");
+//        if (command == COMMAND_LOCK) {
+//          setLocked(!locked);
+//        }
         Log.e(TAG, "write failed", e);
       }
     } else {
-      Toast.makeText(SocialBikeActivity.this, "OutputStream is null || comman -1", Toast.LENGTH_SHORT).show();
+//      myToast("OutputStream is null || command -1");
     }
   }
 
   /* Receive data from the lock */
+  public void myToast(final String msg) {
+    handler.post(new Runnable() {
+
+      @Override
+      public void run() {
+        Toast.makeText(SocialBikeActivity.this, msg, Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
 
   @Override
   public void run() {
@@ -394,10 +449,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
     while (ret >= 0) {
       try {
-        
+
         ret = mInputStream.read(buffer);
         Log.d(TAG, "ret: " + ret);
-//        Toast.makeText(this, "ret: " + ret, Toast.LENGTH_SHORT).show();
         for (int i = 0; i < ret; i++) {
           Log.d(TAG, "ret: buffer[" + i + "]" + buffer[i]);
         }
@@ -406,25 +460,30 @@ public class SocialBikeActivity extends Activity implements Runnable,
       }
       switch (buffer[0]) {
         case ANSWER_LOCK_STATUS: // 4
-          // 0 is locked, else is open
-          setLocked(buffer[1] == 0 ? true : false);
-          Toast.makeText(this, "ANSWER_LOCK_STATUS: " + buffer[1], Toast.LENGTH_SHORT).show();
+          // 1 is locked, else is open
+          setLocked(buffer[1] == 1);
+//          myToast("ANSWER_LOCK_STATUS: " + buffer[1]);
           break;
         case ANSWER_SHACKLE_FEELER: // 5
           // 0 is not plugged in, else is plugged in
-          toggleControls(buffer[1] == 0 ? false : true);
+          toggleControls(buffer[1] != 0);
           break;
         case ANSWER_UNLOCK: // 3
-          // 0 is not plugged in, else is plugged in
-          unlockStatusReport(buffer[1] == 0 ? false : true);
+          // 0 wrong key
+          // 1 locked
+          unlockStatusReport(buffer[1] == 0);
+          break;
+        case ANSWER_LOCK: // 2
+          // 1 locked
+          lockStatusReport(buffer[1] == 0);
           break;
         case ANSWER_SET_KEY: // 6
           // 0 is not plugged in, else is plugged in
-          setKeyStatusReport(buffer[1] == 0 ? false : true);
+          setKeyStatusReport(buffer[1] != 0);
           break;
         default:
           Log.d(TAG, "unknown msg: " + buffer[0]);
-          Toast.makeText(this, "unknown msg", Toast.LENGTH_SHORT).show();
+//          Toast.makeText(this, "unknown msg", Toast.LENGTH_SHORT).show();
           break;
       }
     }
