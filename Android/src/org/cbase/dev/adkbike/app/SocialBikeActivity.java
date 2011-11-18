@@ -211,6 +211,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
       Log.d(TAG, "accessory opened");
       toggleControls(true);
       sendCommand(COMMAND_LOCK_STATUS, 1);
+//      sendCommand(COMMAND_LOCK_STATUS, 1, "1234");
 
     } else {
       Log.d(TAG, "accessory open fail");
@@ -276,18 +277,13 @@ public class SocialBikeActivity extends Activity implements Runnable,
    */
   public void sendCommand(byte command, int value) {
     byte[] buffer;
-    buffer = new byte[3];
+    buffer = new byte[16];
     if (value > 255)
       value = 255;
 
     buffer[0] = command;
     buffer[1] = 3;
     buffer[2] = (byte)value;
-
-    Log.d(TAG, "stream is: " + mOutputStream.toString());
-    Log.d(TAG, "buffer[0] is:" + buffer[0]);
-    Log.d(TAG, "buffer[1] is:" + buffer[1]);
-    Log.d(TAG, "buffer[2] is:" + buffer[2]);
 
     writeBufferToAdk(command, buffer);
   }
@@ -298,7 +294,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
   public void sendCommand(byte command, int value, String key) {
     byte[] buffer;
-    buffer = new byte[6];
+    buffer = new byte[16];
     if (key != null) {
       byte[] keyBytes = keyStringToByteArray(key);
       for (int i = 0; i < keyBytes.length; i++) {
@@ -312,22 +308,67 @@ public class SocialBikeActivity extends Activity implements Runnable,
     buffer[0] = command;
     buffer[1] = 6;
 
-//    Log.d(TAG, "stream is: " + mOutputStream.toString());
+
+    writeBufferToAdk(command, buffer);
+  }
+
+  /**
+   * ungetested
+   * @param command
+   * @param value
+   * @param key
+   * @param masterKey
+   */
+  public void sendCommand(byte command, int value, String key, String masterKey) {
+    byte[] buffer;
+    buffer = new byte[16];
+    if (key != null) {
+      byte[] masterKeyBytes = keyStringToByteArray(masterKey);
+      for (int i = 0; i < masterKeyBytes.length; i++) {
+        buffer[i + 2] = masterKeyBytes[i];
+      }
+      byte[] keyBytes = keyStringToByteArray(key);
+      for (int i = 0; i < keyBytes.length; i++) {
+        buffer[i + 2 + 4] = keyBytes[i];
+      }
+    }
+
+    if (value > 255)
+      value = 255;
+
+    buffer[0] = command;
+    buffer[1] = 10;
+
+    writeBufferToAdk(command, buffer);
+  }
+
+  private void writeBufferToAdk(byte command, byte[] buffer) {
+
+    Log.d(TAG, "stream is: " + mOutputStream.toString());
     Log.d(TAG, "buffer[0] is:" + buffer[0]);
     Log.d(TAG, "buffer[1] is:" + buffer[1]);
     Log.d(TAG, "buffer[2] is:" + buffer[2]);
     Log.d(TAG, "buffer[3] is:" + buffer[3]);
     Log.d(TAG, "buffer[4] is:" + buffer[4]);
     Log.d(TAG, "buffer[5] is:" + buffer[5]);
+    Log.d(TAG, "buffer[6] is:" + buffer[6]);
+    Log.d(TAG, "buffer[7] is:" + buffer[7]);
+    Log.d(TAG, "buffer[8] is:" + buffer[8]);
+    Log.d(TAG, "buffer[9] is:" + buffer[9]);
+    Log.d(TAG, "buffer[10] is:" + buffer[10]);
+    Log.d(TAG, "buffer[11] is:" + buffer[11]);
+    Log.d(TAG, "buffer[12] is:" + buffer[12]);
+    Log.d(TAG, "buffer[13] is:" + buffer[13]);
+    Log.d(TAG, "buffer[14] is:" + buffer[14]);
+    Log.d(TAG, "buffer[15] is:" + buffer[15]);
 
-    writeBufferToAdk(command, buffer);
-  }
-
-  private void writeBufferToAdk(byte command, byte[] buffer) {
     if (mOutputStream != null && buffer[1] != -1) {
       try {
+
         mOutputStream.write(buffer);
+        mOutputStream.flush();
         Log.i(TAG, "Wrote to adk");
+
       } catch (IOException e) {
         Toast.makeText(SocialBikeActivity.this,
                        "Write failed, please retry", Toast.LENGTH_LONG).show();
