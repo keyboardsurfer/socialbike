@@ -7,9 +7,9 @@
 
 #define  KEY_LOCKER     13
 
-#define  SHACKLE_FEELER 23
-#define  SHACKLE_OUTPUT 42
-#define  sensorPin1     1
+#define  SHACKLE_FEELER 42
+#define  SHACKLE_OUTPUT 23
+#define  servoSensor     1
 
 AndroidAccessory acc("SocialBike",
 				"Social Bike Lock",
@@ -56,8 +56,8 @@ int potiRead(int iterations);
 void init_locker()
 {
 		keyStepper = 1;
-		keyMaxValue = 100;
-		keyMinValue = 0;
+		keyMaxValue = 120;
+		keyMinValue = 20;
 		keyLockerValue = keyMinValue;
 		keyLocker.attach(KEY_LOCKER);
 		keyLocker.write(keyLockerValue);
@@ -67,7 +67,7 @@ void init_shackle_feeler()
 {
 		pinMode(SHACKLE_FEELER, INPUT);
 		pinMode(SHACKLE_OUTPUT, OUTPUT);
-		digitalWrite(SHACKLE_OUTPUT, HIGH);
+  digitalWrite(SHACKLE_OUTPUT, LOW);
 }
 
 byte feelerInput;
@@ -76,7 +76,7 @@ bool shackleCheck = false;
 void setup()
 {
 		Serial.begin(115200);
-		Serial.print("\r\nStart\n");
+		Serial.print("\r\nStart Version 17\n");
 
                 
 
@@ -98,6 +98,14 @@ void loop()
         }
         else{
           Serial.println("\nthe lock is closed\n");
+        }
+      }
+      if (inChar == 's') {
+        if (shackleIsOpen()){
+          Serial.println("\nthe shackle is open\n");
+        }
+        else{
+          Serial.println("\nthe shackle is closed\n");
         }
       }
       else if (inChar == 'o') {
@@ -216,8 +224,8 @@ void calibrateLock()
   }
   else{
     Serial.println("\ncalibrating");
-    minLockServo = 0;
-    maxLockServo = 100;
+    minLockServo = 20;
+    maxLockServo = 120;
     keyLocker.write(minLockServo);
     
     delay(1000);
@@ -256,7 +264,7 @@ void calibrateLock()
     maxLockServo = 0;
   }
   keyLocker.write(minLockServo);
-  minAnalogIn = analogRead(sensorPin1);
+  minAnalogIn = analogRead(servoSensor);
   maxAnalogIn = minAnalogIn;
   int lastPotiChange = minAnalogIn;
   
@@ -281,7 +289,7 @@ void calibrateLock()
           //Serial.print("                                                                                                 ");
 
           for (int j = 0; j < 50; j++){
-            int readValue = analogRead(sensorPin1);
+            int readValue = analogRead(servoSensor);
             potiRead += readValue;
 //            Serial.print(readValue,DEC);
 //            Serial.print(" ");
@@ -343,7 +351,7 @@ void closeLock(){
 
 boolean lockIsOpen(){
   Serial.print("lockIsOpen");
-  //int potiValue = potiRead(sensorPin1); //???
+  //int potiValue = potiRead(servoSensor); //???
   int potiValue = potiRead(20);
   if (abs(potiValue - minLockServo) < abs(potiValue - maxLockServo)){
     Serial.print("\nlockIsOpen: true");
@@ -354,14 +362,12 @@ boolean lockIsOpen(){
 }
 boolean shackleIsOpen(){
   Serial.print("\nshackleIsOpen\n");
-  //int potiValue = potiRead(sensorPin1); //???
-  int potiValue = potiRead(20);
-  if (abs(potiValue - minLockServo) < abs(potiValue - maxLockServo)){
-    Serial.print("\nshackleIsOpen: true");
-    return true;
-  }
-    Serial.print("\nshackleIsOpen: false");
-  return false;
+  digitalWrite(SHACKLE_OUTPUT, HIGH);
+  //int potiValue = potiRead(servoSensor); //???
+  boolean shackle = !digitalRead(SHACKLE_FEELER);
+  //delay(500);
+  digitalWrite(SHACKLE_OUTPUT, LOW);
+  return shackle;
 }
 
 //helper stuff
@@ -376,7 +382,7 @@ void writeIntToEEPROM(int value, int EEPROMaddress){
 int potiRead(int iterations){
   int potiRead = 0;
   for (int j = 0; j < iterations; j++){
-    potiRead += analogRead(sensorPin1);
+    potiRead += analogRead(servoSensor);
   }
   potiRead /= iterations;
   return potiRead;
