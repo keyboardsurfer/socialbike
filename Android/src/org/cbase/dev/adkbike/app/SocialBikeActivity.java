@@ -394,29 +394,37 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
     while (ret >= 0) {
       try {
+        
         ret = mInputStream.read(buffer);
+        Log.d(TAG, "ret: " + ret);
+//        Toast.makeText(this, "ret: " + ret, Toast.LENGTH_SHORT).show();
+        for (int i = 0; i < ret; i++) {
+          Log.d(TAG, "ret: buffer[" + i + "]" + buffer[i]);
+        }
       } catch (IOException e) {
         break;
       }
       switch (buffer[0]) {
-        case ANSWER_LOCK_STATUS:
+        case ANSWER_LOCK_STATUS: // 4
           // 0 is locked, else is open
           setLocked(buffer[1] == 0 ? true : false);
+          Toast.makeText(this, "ANSWER_LOCK_STATUS: " + buffer[1], Toast.LENGTH_SHORT).show();
           break;
-        case ANSWER_SHACKLE_FEELER:
+        case ANSWER_SHACKLE_FEELER: // 5
           // 0 is not plugged in, else is plugged in
           toggleControls(buffer[1] == 0 ? false : true);
           break;
-        case ANSWER_UNLOCK:
+        case ANSWER_UNLOCK: // 3
           // 0 is not plugged in, else is plugged in
           unlockStatusReport(buffer[1] == 0 ? false : true);
           break;
-        case ANSWER_SET_KEY:
+        case ANSWER_SET_KEY: // 6
           // 0 is not plugged in, else is plugged in
           setKeyStatusReport(buffer[1] == 0 ? false : true);
           break;
         default:
           Log.d(TAG, "unknown msg: " + buffer[0]);
+          Toast.makeText(this, "unknown msg", Toast.LENGTH_SHORT).show();
           break;
       }
     }
