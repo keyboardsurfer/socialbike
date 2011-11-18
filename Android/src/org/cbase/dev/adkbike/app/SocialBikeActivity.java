@@ -210,7 +210,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
       thread.start();
       Log.d(TAG, "accessory opened");
       toggleControls(true);
-      sendCommand(ANSWER_LOCK_STATUS, 1);
+      sendCommand(COMMAND_LOCK_STATUS, 1);
 
     } else {
       Log.d(TAG, "accessory open fail");
@@ -282,6 +282,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
     buffer[0] = command;
     buffer[1] = 3;
+    buffer[2] = (byte)value;
 
     Log.d(TAG, "stream is: " + mOutputStream.toString());
     Log.d(TAG, "buffer[0] is:" + buffer[0]);
