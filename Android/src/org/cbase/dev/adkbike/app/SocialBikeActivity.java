@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
-import android.preference.EditTextPreference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -43,6 +42,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
   private Button  lockButton;
   private boolean locked;
   private boolean controlsEnabled = true;
+  private SharedPreferences prefs;
 
   private String key;
 
@@ -55,28 +55,44 @@ public class SocialBikeActivity extends Activity implements Runnable,
   /**
    * The command that indicates that we're sending a key to the lock.
    */
-  public static final byte COMMAND_KEY            = 1;
+  public static final byte COMMAND_KEY  = 1;
   /**
    * The command that indicates that we want to close the lock.
    */
-  public static final byte COMMAND_LOCK           = 2;
+  public static final byte COMMAND_LOCK = 2;
+  /**
+   * Indicates unlock status
+   * 1 indicates success
+   * 0 indicates wrong password
+   */
+  public static final byte ANSWER_LOCK  = 2;
+
   /**
    * The command that indicates that we want to open the lock.
    */
-  public static final byte COMMAND_UNLOCK         = 3;
+  public static final byte COMMAND_UNLOCK        = 3;
+  /**
+   * Indicates unlock status
+   * 1 indicates success
+   * 0 indicates wrong password
+   */
+  public static final byte ANSWER_UNLOCK         = 3;
   /**
    * Indicates that you want to know whether the lock is open or closed.
    */
   public static final byte COMMAND_LOCK_STATUS    = 4;
+  public static final byte ANSWER_LOCK_STATUS    = 4;
   /**
    * Tells you the status of the shackle, ie. if it's plugged or unplugged.
    */
-  public static final byte COMMAND_SHACKLE_FEELER = 5;
+  public static final byte ANSWER_SHACKLE_FEELER = 5;
   /**
-   * The command that indicates that we want to change the lights attached to
-   * the lock (if any exist)
+   * The command that sets the new key
+   * first 4 bytes masterkey, then 4 bytes new key
    */
-  public static final byte COMMAND_LIGHT          = 6;
+  public static final byte COMMAND_SET_KEY       = 6;
+  public static final byte ANSWER_SET_KEY        = 6;
+
 
   protected class KeyMessage {
     private byte sw;
@@ -194,7 +210,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
       thread.start();
       Log.d(TAG, "accessory opened");
       toggleControls(true);
-      sendCommand(COMMAND_LOCK_STATUS, (byte) COMMAND_LOCK_STATUS, 1);
+      sendCommand(ANSWER_LOCK_STATUS, 1);
+
     } else {
       Log.d(TAG, "accessory open fail");
     }
@@ -224,6 +241,23 @@ public class SocialBikeActivity extends Activity implements Runnable,
          .show();
   }
 
+  private void setKeyStatusReport(boolean b) {
+    if (b) {
+      Toast.makeText(this, "Wrong Master Key", Toast.LENGTH_LONG).show();
+    } else {
+      Toast.makeText(this, "Right Master Key", Toast.LENGTH_SHORT).show();
+    }
+  }
+
+  private void unlockStatusReport(boolean answer) {
+    if (answer) {
+      Toast.makeText(this, "Wrong Key", Toast.LENGTH_LONG).show();
+    } else {
+      Toast.makeText(this, "Right Key", Toast.LENGTH_SHORT).show();
+    }
+
+  }
+
   private void setLocked(boolean locked) {
     this.locked = locked;
     if (locked) {
@@ -238,31 +272,57 @@ public class SocialBikeActivity extends Activity implements Runnable,
    * Sends a command to the attached device.
    *
    * @param command The command you want to send.
-   * @param target
    * @param value   The value that should be sent.
    */
-  public void sendCommand(byte command, byte target, int value) {
+  public void sendCommand(byte command, int value) {
     byte[] buffer;
-    if (command == COMMAND_UNLOCK) {
-      buffer = new byte[6];
-      buffer[2] = 1;
-      buffer[3] = 2;
-      buffer[4] = 3;
-      buffer[5] = 4;
-    } else {
-      buffer = new byte[3];
-    }
+    buffer = new byte[3];
     if (value > 255)
       value = 255;
 
     buffer[0] = command;
-    buffer[1] = target;
-    buffer[2] = (byte) value;
+    buffer[1] = 3;
+
     Log.d(TAG, "stream is: " + mOutputStream.toString());
     Log.d(TAG, "buffer[0] is:" + buffer[0]);
     Log.d(TAG, "buffer[1] is:" + buffer[1]);
     Log.d(TAG, "buffer[2] is:" + buffer[2]);
 
+    writeBufferToAdk(command, buffer);
+  }
+
+  private byte[] keyStringToByteArray(String key) {
+    return key.substring(0, 4).getBytes();
+  }
+
+  public void sendCommand(byte command, int value, String key) {
+    byte[] buffer;
+    buffer = new byte[6];
+    if (key != null) {
+      byte[] keyBytes = keyStringToByteArray(key);
+      for (int i = 0; i < keyBytes.length; i++) {
+        buffer[i + 2] = keyBytes[i];
+      }
+    }
+
+    if (value > 255)
+      value = 255;
+
+    buffer[0] = command;
+    buffer[1] = 6;
+
+//    Log.d(TAG, "stream is: " + mOutputStream.toString());
+    Log.d(TAG, "buffer[0] is:" + buffer[0]);
+    Log.d(TAG, "buffer[1] is:" + buffer[1]);
+    Log.d(TAG, "buffer[2] is:" + buffer[2]);
+    Log.d(TAG, "buffer[3] is:" + buffer[3]);
+    Log.d(TAG, "buffer[4] is:" + buffer[4]);
+    Log.d(TAG, "buffer[5] is:" + buffer[5]);
+
+    writeBufferToAdk(command, buffer);
+  }
+
+  private void writeBufferToAdk(byte command, byte[] buffer) {
     if (mOutputStream != null && buffer[1] != -1) {
       try {
         mOutputStream.write(buffer);
@@ -293,13 +353,21 @@ public class SocialBikeActivity extends Activity implements Runnable,
         break;
       }
       switch (buffer[0]) {
-        case COMMAND_LOCK_STATUS:
+        case ANSWER_LOCK_STATUS:
           // 0 is locked, else is open
           setLocked(buffer[1] == 0 ? true : false);
           break;
-        case COMMAND_SHACKLE_FEELER:
+        case ANSWER_SHACKLE_FEELER:
           // 0 is not plugged in, else is plugged in
           toggleControls(buffer[1] == 0 ? false : true);
+          break;
+        case ANSWER_UNLOCK:
+          // 0 is not plugged in, else is plugged in
+          unlockStatusReport(buffer[1] == 0 ? false : true);
+          break;
+        case ANSWER_SET_KEY:
+          // 0 is not plugged in, else is plugged in
+          setKeyStatusReport(buffer[1] == 0 ? false : true);
           break;
         default:
           Log.d(TAG, "unknown msg: " + buffer[0]);
@@ -314,9 +382,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
     switch (v.getId()) {
       case R.id.toggleLock:
         if (locked) {
-          sendCommand(COMMAND_UNLOCK, (byte) COMMAND_UNLOCK, 1);
+          sendCommand(COMMAND_UNLOCK, 1, key);
         } else {
-          sendCommand(COMMAND_LOCK, (byte) COMMAND_LOCK, 1);
+          sendCommand(COMMAND_LOCK, 1);
         }
         setLocked(!locked);
         break;

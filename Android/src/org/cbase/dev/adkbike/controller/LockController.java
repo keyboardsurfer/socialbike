@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 public class LockController implements OnCheckedChangeListener {
-	private final byte mCommandTarget;
 	private SocialBikeActivity mActivity;
 	private TextView mLabel;
 	private ToggleButton mButton;
@@ -24,7 +23,6 @@ public class LockController implements OnCheckedChangeListener {
 
 	public LockController(SocialBikeActivity activity, Resources res) {
 		mActivity = activity;
-		mCommandTarget = (byte) 11;
 		mOffBackground = res
 				.getDrawable(R.drawable.toggle_button_off_holo_dark);
 		mOnBackground = res.getDrawable(R.drawable.toggle_button_on_holo_dark);
@@ -49,7 +47,7 @@ public class LockController implements OnCheckedChangeListener {
 		}
 		if (mActivity != null) {
 			mActivity.sendCommand(SocialBikeActivity.COMMAND_LOCK,
-					mCommandTarget, isChecked ? 1 : 0);
+					 isChecked ? 1 : 0);
 		}
 	}
 
