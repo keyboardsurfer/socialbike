@@ -10,12 +10,14 @@
 #define  SHACKLE_FEELER 42
 #define  SHACKLE_OUTPUT 23
 #define  servoSensor     1
+#define  PASSWORD_EEPROM_ADDR 20
+#define  MASTER_KEY_ADDR 30
 
 AndroidAccessory acc("SocialBike",
 				"Social Bike Lock",
 				"SocialBike Lock",
-				"1.0",
-				"http://www.c-base.org",
+				"0.1",
+				"https://market.android.com/details?id=org.cbase.dev.adkbike",
 				"3245678878765432");
 /*
    AndroidAccessory acc("Google, Inc.",
@@ -48,6 +50,12 @@ void openLock();
 void closeLock();
 boolean lockIsOpen();
 
+boolean passwordCorrect(int addr, byte a, byte b, byte c, byte d);
+boolean passwordCorrect(byte a, byte b, byte c, byte d);
+
+void writePassword(int addr, byte a, byte b, byte c, byte d);
+void writePassword(byte a, byte b, byte c, byte d);
+
 //helper methods
 void writeIntToEEPROM(int value, int EEPROMaddress);
 int readIntFromEEPROM(int EEPROMaddress);
@@ -76,14 +84,28 @@ bool shackleCheck = false;
 void setup()
 {
 		Serial.begin(115200);
-		Serial.print("\r\nStart Version 17\n");
+		Serial.print("\r\nStart Version 24\n");
 
+                if(!passwordCorrect(49, 50, 51, 52)){
+                  Serial.print("writing default key in the EEPROM");
+                  writePassword(49, 50, 51, 52);
+                }
+                else{
+                  Serial.print("EEPROM seems to have the correct password");
+                }
                 
+                if(!passwordCorrect(MASTER_KEY_ADDR, 0x2, 0x3, 0x4, 0x2)){
+                  Serial.print("writing 2343 as master key in the EEPROM");
+                  writePassword(MASTER_KEY_ADDR, 0x2, 0x3, 0x4, 0x2);
+                }
+                else{
+                  Serial.print("\nEEPROM seems to have the correct master key");
+                }
 
 		init_locker();
 		init_shackle_feeler();
 
-    calibrateLock();
+                calibrateLock();
 
 		acc.powerOn();
 }
@@ -92,7 +114,7 @@ void loop()
 {
   if (Serial.available() > 0) {
     byte inChar = Serial.read();
-      if (inChar == 'd') {
+      if (inChar == 'l') {
         if (lockIsOpen()){
           Serial.println("\nthe lock is open\n");
         }
@@ -115,32 +137,30 @@ void loop()
         closeLock();
       }
       else if (inChar == 'h') {
-        Serial.println("possible commands: [d]ebug [o]pen [c]lose");
+        Serial.println("possible commands: [h]elp [o]pen [c]lose [s]hacle status [l]ock status");
       }
   }
   
-		byte message[3];
+		byte message[16];
 
 		if (acc.isConnected()) {
 				int length = acc.read(message, sizeof(message), 1);
 				byte shackleFeeler;
 
 				if (length > 0) {
-						Serial.print("\r\n Received stuff: ");
-						Serial.print("\r\n message size is: ");
+                                                Serial.print("\r\n acc.read returned: ");
+                                                Serial.print(length, DEC);
+						Serial.print("\r\n size of message[]: ");
 						Serial.print(sizeof(message), DEC);
-						Serial.print("\r\n message[0] is: ");
-						Serial.print(message[0],DEC);
-						Serial.print("\r\n message[1] is: ");
-						Serial.print(message[1],DEC);
-						Serial.print("\r\n message[2] is: ");
-						Serial.print(message[2],DEC);
+                                                Serial.print("\r\n");
+                                                Serial.print("\r\n Received stuff: ");
+						for (int i = 0; i < 16; i++){
+                                                  Serial.print(message[i], DEC); Serial.print(" ");
+                                                }
+                                                Serial.print("\r\n");
 						// assumes only one command per packet
 						if (message[0] == 0x2) {
-								if (message[1] == 0x10) {
-										keyLocker.write(map(message[2], 0, 255, 0, 180));
-										Serial.print("\r\nMESSAGE wrote to keyLocker\n");
-								}
+						  closeLock();
 						}
 
 						if (message[0] == 0x1 && message[1] == 0x0) {
@@ -152,18 +172,29 @@ void loop()
 								}
 						}
 
-						if (message[0] == 0x2 && message[1] == 0x2) {
-								Serial.print("\r\nShackle lock\n");
-								closeLock();
+						if (message[0] == 0x2) {
+						  Serial.print("\r\nShackle lock\n");
+						  closeLock();
+                                                  byte answer[3];
+                                                  answer[0] = 0x2;
+                                                  answer[1] = 0x1;
+                                                  answer[2] = 0x0;
+                                                  acc.write(answer, 3); 
 						}
-						if (message[0] == 0x3 && message[1] == 0x3 
-                && message[2] == 0x1
-                && message[3] == 0x2
-                && message[4] == 0x3
-                && message[5] == 0x4
-            ) {
-								Serial.print("\r\nShackle unlock\n");
-								openLock();
+						if (message[0] == 0x3){
+                                                byte answer[3];
+                                                answer[0] = 0x3;
+                                                  if(passwordCorrect(message[2], message[3], message[4], message[5])){
+					            Serial.print("\r\nPin was correct Shackle unlock\n");
+						    openLock();
+                                                    answer[1] = 0x1;
+                                                  }
+                                                  else{
+                                                    Serial.print("\r\nPin was not correct\n");
+                                                    answer[1] = 0x0;
+                                                  }
+                                                  answer[2] = 0x0;
+                                                  acc.write(answer, 3);
 						}
 						if (message[0] == 0x4) {
 								Serial.print("\r\nCheck lock state\n");
@@ -173,6 +204,22 @@ void loop()
 								Serial.print("\r\nCheck shackle state\n");
 								sendShackleState(acc);
 						}
+                                                if (message[0] == 0x6) {
+                                                  byte answer[3];
+                                                answer[0] = 0x6;
+						  if(passwordCorrect(MASTER_KEY_ADDR, message[2], message[3], message[4], message[5])){
+                                                      Serial.print("\r\nMaster key is correct, we´re setting the key\n");
+                                                     writePassword(message[6], message[7], message[8], message[9]);
+                                                     answer[1] = 0x1;
+                                                   }
+                                                   else{
+                                                     Serial.print("\r\nMaster key is not correct\n");
+                                                     answer[1] = 0x0;
+                                                   }
+                                                  answer[2] = 0x0;
+                                                  acc.write(answer, 3);
+						}
+                                                
 
 				}
 				if (shackleCheck) {
@@ -380,8 +427,8 @@ boolean shackleIsOpen(){
 void writeIntToEEPROM(int value, int EEPROMaddress){
   byte a1 = (value >> 8);
   byte a2 = (value);
-  EEPROM.write(a1,EEPROMaddress);
-  EEPROM.write(a2,EEPROMaddress+1);
+  EEPROM.write(EEPROMaddress,a1);
+  EEPROM.write(EEPROMaddress+1, a2);
 }
 
 int potiRead(int iterations){
@@ -401,22 +448,48 @@ void sendLockState(AndroidAccessory acc) {
 
     Serial.print("\n\n sendLockState ");
 
-    byte message[3];
-    message[0]=4;
+    byte answer[3];
+    answer[0]=4;
 //    message[1]=lockIsOpen() ? 1 : 0;
-    message[1]=lockIsOpen() ? 0 : 1;
-    message[2]=0;
-    acc.write(message, 3);
+    answer[1]=lockIsOpen() ? 0 : 1;
+    answer[2]=0;
+    acc.write(answer, 3);
 
 }
 void sendShackleState(AndroidAccessory acc) {
 
     Serial.print("\n\n sendShackleState \n");
 
-    byte message[3];
-    message[0]=4;
-    message[1]=shackleIsOpen();
-    message[2]=0;
-    acc.write(message, 3);
+    byte answer[3];
+    answer[0]=5;
+    answer[1]=shackleIsOpen();
+    answer[2]=0;
+    acc.write(answer, 3);
 
 }
+boolean passwordCorrect(int addr, byte a, byte b, byte c, byte d){
+Serial.print("This is in the EEPROM:\n");
+Serial.print(EEPROM.read(addr+0),DEC);       Serial.print(" "); 
+Serial.print(EEPROM.read(addr+1),DEC);       Serial.print(" ");
+Serial.print(EEPROM.read(addr+2),DEC);       Serial.print(" ");
+Serial.print(EEPROM.read(addr+3),DEC);       Serial.print("\n");
+return   a == EEPROM.read(addr+0)
+      && b == EEPROM.read(addr+1)
+      && c == EEPROM.read(addr+2)
+      && d == EEPROM.read(addr+3);
+}
+
+boolean passwordCorrect(byte a, byte b, byte c, byte d){
+   return passwordCorrect(PASSWORD_EEPROM_ADDR, a, b, c, d);
+}
+
+void writePassword(int addr, byte a, byte b, byte c, byte d){
+  EEPROM.write(addr+0, a);
+  EEPROM.write(addr+1, b);
+  EEPROM.write(addr+2, c);
+  EEPROM.write(addr+3, d);
+}
+void writePassword(byte a, byte b, byte c, byte d){
+    writePassword(PASSWORD_EEPROM_ADDR, a, b, c, d);
+}
+
