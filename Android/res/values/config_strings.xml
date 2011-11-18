@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="preference_key">bikeKey</string>
+    <string name="preference_key">Bike Key</string>
+    <string name="preference_master_key">Bike Master Key</string>
 
 </resources>
