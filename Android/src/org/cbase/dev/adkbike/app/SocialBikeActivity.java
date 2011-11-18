@@ -80,7 +80,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
   /**
    * Indicates that you want to know whether the lock is open or closed.
    */
-  public static final byte COMMAND_LOCK_STATUS    = 4;
+  public static final byte COMMAND_LOCK_STATUS   = 4;
   public static final byte ANSWER_LOCK_STATUS    = 4;
   /**
    * Tells you the status of the shackle, ie. if it's plugged or unplugged.
@@ -154,6 +154,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
       mAccessory = (UsbAccessory) getLastNonConfigurationInstance();
       openAccessory(mAccessory);
     }
+
     setContentView(R.layout.main);
     lockButton = (Button) findViewById(R.id.toggleLock);
     lockButton.setOnClickListener(this);
@@ -162,6 +163,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
   @Override
   public void onResume() {
     super.onResume();
+
 
     SharedPreferences prefs = PreferenceManager
       .getDefaultSharedPreferences(this);
@@ -283,7 +285,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
     buffer[0] = command;
     buffer[1] = 3;
-    buffer[2] = (byte)value;
+    buffer[2] = (byte) value;
 
     writeBufferToAdk(command, buffer);
   }
@@ -314,6 +316,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
   /**
    * ungetested
+   *
    * @param command
    * @param value
    * @param key
@@ -344,7 +347,6 @@ public class SocialBikeActivity extends Activity implements Runnable,
 
   private void writeBufferToAdk(byte command, byte[] buffer) {
 
-    Log.d(TAG, "stream is: " + mOutputStream.toString());
     Log.d(TAG, "buffer[0] is:" + buffer[0]);
     Log.d(TAG, "buffer[1] is:" + buffer[1]);
     Log.d(TAG, "buffer[2] is:" + buffer[2]);
@@ -377,6 +379,8 @@ public class SocialBikeActivity extends Activity implements Runnable,
         }
         Log.e(TAG, "write failed", e);
       }
+    } else {
+      Toast.makeText(SocialBikeActivity.this, "OutputStream is null || comman -1", Toast.LENGTH_SHORT).show();
     }
   }
 

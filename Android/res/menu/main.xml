@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item android:id="@+id/preferences"
+          android:icon="@drawable/ic_menu_settings"
+          android:title="Preferences"
+            />
+    <!--<item android:id="@+id/set_key"-->
+          <!--android:icon="@drawable/ic_menu_settings"-->
+          <!--android:title="Set Key"-->
+            <!--/>-->
+</menu>
