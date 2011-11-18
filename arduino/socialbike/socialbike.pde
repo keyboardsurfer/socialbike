@@ -156,7 +156,12 @@ void loop()
 								Serial.print("\r\nShackle lock\n");
 								closeLock();
 						}
-						if (message[0] == 0x3 && message[1] == 0x3) {
+						if (message[0] == 0x3 && message[1] == 0x3 
+                && message[2] == 0x1
+                && message[3] == 0x2
+                && message[4] == 0x3
+                && message[5] == 0x4
+            ) {
 								Serial.print("\r\nShackle unlock\n");
 								openLock();
 						}
