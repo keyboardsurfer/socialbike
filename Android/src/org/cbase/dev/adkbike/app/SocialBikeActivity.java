@@ -1,5 +1,12 @@
 package org.cbase.dev.adkbike.app;
 
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.cbase.dev.adkbike.R;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -22,12 +29,6 @@ import android.widget.Button;
 import android.widget.Toast;
 import com.android.future.usb.UsbAccessory;
 import com.android.future.usb.UsbManager;
-import org.cbase.dev.adkbike.R;
-
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class SocialBikeActivity extends Activity implements Runnable,
                                                             OnClickListener {
@@ -426,7 +427,7 @@ public class SocialBikeActivity extends Activity implements Runnable,
         Log.e(TAG, "write failed", e);
       }
     } else {
-//      myToast("OutputStream is null || command -1");
+//      myToast("OutputStream is null ||¬†command -1");
     }
   }
 
