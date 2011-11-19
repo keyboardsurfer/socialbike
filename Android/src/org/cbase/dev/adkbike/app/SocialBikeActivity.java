@@ -339,6 +339,9 @@ public class SocialBikeActivity extends Activity implements Runnable,
   }
 
   private byte[] keyStringToByteArray(String key) {
+  	if (key.length() < 4) {
+      return new byte[] {0,0,0,0};
+    }
     return key.substring(0, 4).getBytes();
   }
 
